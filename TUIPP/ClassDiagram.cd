@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="RenderTarget3D" Collapsed="true">
+    <Position X="9.75" Y="4.75" Width="1.5" />
+    <NestedTypes>
+      <Class Name="RenderTarget3D::Mesh" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>RenderTarget3D.hpp</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="RenderTarget3D::Object" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>RenderTarget3D.hpp</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="RenderTarget3D::Triangle" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>RenderTarget3D.hpp</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Typedef Name="RenderTarget3D::Triangles" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>RenderTarget3D.hpp</NewMemberFileName>
+        </TypeIdentifier>
+      </Typedef>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAAAQAAAAAAAAAAAACAAAAAAgABAAAAAAAAE=</HashCode>
+      <FileName>RenderTarget3D.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Panel" Collapsed="true">
+    <Position X="12.25" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AASAJAAAQAAgAIAAgAQgAAAAAACAAESBABQSAAAQAAA=</HashCode>
+      <FileName>Panel.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RenderTarget" Collapsed="true">
+    <Position X="8.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AiAAABAEAAAAAAAQAAIAABCAAAAACGAQCAAAEAAICAA=</HashCode>
+      <FileName>RenderTarget.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Component" Collapsed="true">
+    <Position X="12" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAIAACACAgAACAAAAMggAAAAAAAg8CQBBAAAAIEAA=</HashCode>
+      <FileName>Component.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="U3DViewer" Collapsed="true">
+    <Position X="9.75" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAABAAAAAAAIAAAAgAAAAAAAAAAAAAAADAAAAAAAAA=</HashCode>
+      <FileName>U3DViewer.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
