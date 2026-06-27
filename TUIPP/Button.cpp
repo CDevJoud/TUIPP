@@ -27,6 +27,10 @@ void Button::SetUpFrame(RenderTarget* rt, SMALL_RECT rect, uint8_t color)
 }
 
 
+Button::Button() : Component(Component::Type::Button, &this->re, "NONE!", {}) {
+	this->Create(this->m_title, this->m_nWidth, this->m_nHeight);
+}
+
 Button::Button(const std::string& title, uint16_t width, uint16_t height, FunctionContainer fc) :
 	Component(Component::Type::Button, &this->re, title, fc),
 	m_title(title),
@@ -71,11 +75,19 @@ Button::Button(const std::string& title, uint16_t width, uint16_t height, bool w
 
 void Button::Create(const std::string& title, uint16_t width, uint16_t height)
 {
-	this->m_nWidth = width;
-	this->m_nHeight = height;
 	this->m_title = title;
-	this->re.buffer.resize(width * height);
-	this->re.viewRect = { 0, 0, short(width), short(height) };
+	if (width == 0xffff) {
+		this->m_nWidth = this->m_title.length() + 2;
+	}
+	else
+		this->m_nWidth = width;
+	if (height == 0xffff) {
+		this->m_nHeight = 1;
+	}
+	else
+		this->m_nHeight = height;
+	this->re.buffer.resize(this->m_nWidth * this->m_nHeight);
+	this->re.viewRect = { 0, 0, short(this->m_nWidth), short(this->m_nHeight)};
 }
 
 std::shared_ptr<Button> Button::CreateInstance(const std::string& title, uint16_t width, uint16_t height, FunctionContainer fc)
@@ -102,15 +114,16 @@ void Button::Update(EventProcessor* ep)
 		if (Component::GetFunctionContainer().Find("OnClicked"))
 		{
 			if (ep->Mouse(EventProcessor::MouseType::Left).bStrokePressed)
-				Component::GetFunctionContainer().CallFunction<void, EventProcessor::MouseType>("OnClicked", EventProcessor::MouseType::Left);
+				Component::GetFunctionContainer().CallFunction<void, Button&, EventProcessor::MouseType>("OnClicked", *this, EventProcessor::MouseType::Left);
 			if (ep->Mouse(EventProcessor::MouseType::Right).bStrokePressed)
-				Component::GetFunctionContainer().CallFunction<void, EventProcessor::MouseType>("OnClicked", EventProcessor::MouseType::Right);
+				Component::GetFunctionContainer().CallFunction<void, Button&, EventProcessor::MouseType>("OnClicked", *this, EventProcessor::MouseType::Right);
 			if (ep->Mouse(EventProcessor::MouseType::Middle).bStrokePressed)
-				Component::GetFunctionContainer().CallFunction<void, EventProcessor::MouseType>("OnClicked", EventProcessor::MouseType::Middle);
+				Component::GetFunctionContainer().CallFunction<void, Button&, EventProcessor::MouseType>("OnClicked", *this, EventProcessor::MouseType::Middle);
 		}
-	}
-	else
+	} else {
 		Button::m_isHovering = false;
+		Button::m_hoveringColor = Button::m_color;
+	}
 }
 
 uint8_t GetTextBackColor(uint8_t color)
@@ -120,16 +133,16 @@ uint8_t GetTextBackColor(uint8_t color)
 
 void Button::Render(RenderTarget* out)
 {
-	uint8_t backColor = 0x00;
+	/*uint8_t backColor = 0x00, frontColor = 0x00;
 	if (Button::m_isHovering)
 		backColor = this->m_hoveringColor & 0xF0;
 	else
 		backColor = this->m_hoveringColor & 0x0F;
 
 	if (backColor == 0xF0)
-		m_frontColor = 0x00;
+		frontColor = !m_frontColor;
 
-	uint8_t bColor = backColor | m_frontColor;
+	uint8_t bColor = backColor | frontColor;
 	
 	RenderTarget::Fill(0, 0,
 			  this->m_nWidth,
@@ -137,8 +150,41 @@ void Button::Render(RenderTarget* out)
 			  0x0000, backColor);
 	if (Button::m_withFrame)
 		Button::SetUpFrame(out, { Component::GetPosition().X, Component::GetPosition().Y, Component::GetSize().X, Component::GetSize().Y }, 0x0f);
+	
 	RenderTarget::RenderText((Component::GetSize().X / 2) - (Button::GetTitle().length() / 2), Component::GetSize().Y / 2, this->m_title, bColor);
-	RenderTarget::FlushTo(out, { this->GetPosition().X, this->GetPosition().Y, this->GetSize().X, this->GetSize().Y });
+	RenderTarget::FlushTo(out, { this->GetPosition().X, this->GetPosition().Y, this->GetSize().X, this->GetSize().Y });*/
+
+	uint8_t backColor = 0x00, frontColor = m_frontColor;
+	if (!Button::m_isHovering) {
+		backColor = Button::m_hoveringColor & 0xF0;
+
+		RenderTarget::Fill(0, 0, this->m_nWidth, this->m_nHeight, 0x0000, backColor);
+
+		if ((backColor >> 4) == frontColor) {
+			unsigned char a = ~frontColor;
+			frontColor = a >> 4;
+		}
+
+		uint8_t color = backColor | frontColor;
+
+		RenderTarget::RenderText((Component::GetSize().X / 2) - (Button::GetTitle().length() / 2), Component::GetSize().Y / 2, this->m_title, color);
+		RenderTarget::FlushTo(out, { this->GetPosition().X, this->GetPosition().Y, this->GetSize().X, this->GetSize().Y });
+	}
+	else {
+		backColor = Button::m_hoveringColor & 0xF0;
+
+		RenderTarget::Fill(0, 0, this->m_nWidth, this->m_nHeight, 0x0000, backColor);
+
+		if ((backColor >> 4) == frontColor) {
+			frontColor = ~frontColor;
+		}
+
+		uint8_t color = backColor | frontColor;
+
+		RenderTarget::RenderText((Component::GetSize().X / 2) - (Button::GetTitle().length() / 2), Component::GetSize().Y / 2, this->m_title, color);
+		RenderTarget::FlushTo(out, { this->GetPosition().X, this->GetPosition().Y, this->GetSize().X, this->GetSize().Y });
+
+	}
 }
 
 void Button::OnInit()
@@ -147,9 +193,10 @@ void Button::OnInit()
 		Component::GetFunctionContainer().CallFunction<void>("OnInit");
 }
 
-void Button::WithFrame(bool value)
+Button& Button::WithFrame(bool value)
 {
 	Button::m_withFrame = value;
+	return *this;
 }
 
 std::string Button::GetTitle() const
@@ -157,7 +204,14 @@ std::string Button::GetTitle() const
 	return Button::m_title;
 }
 
-void Button::SetTextColor(const uint8_t color)
+Button& Button::SetTextColor(const uint8_t color)
 {
 	this->m_frontColor = color;
+	return *this;
+}
+
+Button& Button::SetColor(const uint8_t color)
+{
+	this->m_color = color;
+	return *this;
 }

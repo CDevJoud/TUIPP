@@ -76,35 +76,102 @@
 //
 //	return 0;
 //}
+//
+//
+//#include "Console.hpp"
+//#include "InputBox.hpp"
+//
+//class Application : public Console, public TUIStartup {
+//public:
+//	Application() : Console("App", 240, 64, 8, 16) {
+//		Console::InsertComponent(Panel::CreateInstance("main", 120, 32, {
+//			{
+//				"OnInit", std::function<void(Panel&)>([&](Panel& main) {
+//					auto in = InputBox::CreateInstance("Enter your name", 40, 1);
+//					main.InsertComponent(in);
+//					in->SetTitleAlignment(InputBox::TitleAlignment::Right);
+//					in->SetPosition(main.GetSize().X / 2 - in->GetSize().X / 2, main.GetSize().Y * 0.25);
+//					in->SetResizability(true);
+//					in->SetMovability(true);
+//					in->SetInputType(InputBox::Type::Password);
+//
+//					auto btn = Button::CreateInstance("send", Button::Default, 1, {
+//						{
+//							"OnClicked", std::function<void(EventProcessor::MouseType)>([&](EventProcessor::MouseType mType) {
+//								if (mType == EventProcessor::MouseType::Left) {
+//									this->username = main.GetComponent<InputBox>("Enter your name")->value.str;
+//								}
+//							})
+//						}
+//						});
+//					main.InsertComponent(btn);
+//
+//					btn->SetPosition(main.GetSize().X / 2 - btn->GetSize().X / 2, btn->GetPosition().Y);
+//				})
+//			},{
+//				"OnRender", std::function<void(Panel&)>([&](Panel& main) {
+//					main.ClearScreen(0x2591, 0x1f);
+//					if (!this->username.empty()) {
+//						std::string greeting = "Hello " + username;
+//						main.RenderText((main.GetSize().X / 2) - (greeting.length() / 2), main.GetSize().Y / 2, greeting, 0x0f);
+//					}
+//				})
+//			},{
+//				"OnResize", std::function<void(Panel&)>([&](Panel& main) {
+//					auto& in = *main.GetComponent<InputBox>("Enter your name");
+//					in.SetPosition(main.GetSize().X / 2 - in.GetSize().X / 2, main.GetSize().Y * 0.25);
+//					auto& btn = *main.GetComponent<Button>("send");
+//					btn.SetPosition(main.GetSize().X / 2 - btn.GetSize().X / 2, main.GetSize().Y * 0.25 + 2);
+//				})
+//			}
+//			}));
+//	}
+//	int main() {
+//		while (Console::Window::IsOpen()) {
+//			if (Console::EventProcessor::Keyboard(VK_ESCAPE).bStrokeReleased) {
+//				Console::Window::Close();
+//			}
+//
+//			Console::RenderTarget::ClearScreen();
+//			
+//			Console::Display();
+//		}
+//		return 0;
+//	}
+//private:
+//	std::string username;
+//};
+//
+//TUIWIN32_STARTUP(Application);
+
 
 #include "Console.hpp"
 #include "U3DViewer.hpp"
 
-class Application : public virtual Console
-{
+class Application : public virtual Console, public TUIStartup {
 public:
 	Application() : Console("App", 240, 64, 8, 16)
 	{
 		Console::InsertComponent(U3DViewer::CreateInstance("Main", 120, 32, {
 			{
-				"OnInit", std::function<void()>([&]() {
+				"OnInit", Panel::FD::OnInit([&](Panel& Main) {
 					auto& instance = *Console::GetComponent<U3DViewer>("Main");
 					instance.DefinePerspectiveProjection(0.1f, 1000.0f, 15.0f, (float)instance.GetSize().Y * 2 / instance.GetSize().X);
 					obj.mesh.GenerateTorus(2, 1, 20, 20);
 					obj.position.z = 30;
 					instance.SetObject(&obj);
-					instance.InsertComponent(Button::CreateInstance("Move Up", Button::Default, 1, {
+					Main.InsertComponent(Button::CreateInstance("Move Up", Button::Default, 1, {
 						{
-							"OnClicked", std::function<void(EventProcessor::MouseType) >([&](EventProcessor::MouseType mType) {
+							"OnClicked", Button::FD::OnClicked([&](Button& btn, EventProcessor::MouseType mType) {
 								if (mType == EventProcessor::MouseType::Left) {
 									obj.position.y -= 0.5f;
 								}
 							})
 						}
 						}));
-					instance.InsertComponent(Button::CreateInstance("Move Down", Button::Default, 1, {
+					Main.InsertComponent(Button::CreateInstance("Move Down", Button::Default, 1, {
 						{
-							"OnClicked", std::function<void(EventProcessor::MouseType) >([&](EventProcessor::MouseType mType) {
+							"OnClicked", Button::FD::OnClicked([&](Button& btn, EventProcessor::MouseType mType) {
 								if (mType == EventProcessor::MouseType::Left) {
 									obj.position.y += 0.5f;
 								}
@@ -114,15 +181,15 @@ public:
 					})
 			},
 			{
-				"OnRender", std::function<void()>([&]() {
+				"OnRender", Panel::FD::OnRender([&](Panel& Main) {
 					auto& instance = *Console::GetComponent<U3DViewer>("Main");
 					obj.rotation.y += 0.005f;
 					instance.SetLightPosition({ 1, 1, 0 });
-					instance.ClearScreen(); 
+					Main.ClearScreen();
 				})
 			},
 			{
-				"OnResize", std::function<void()>([&]() {
+				"OnResize", Panel::FD::OnResize([&](Panel& Main) {
 					auto& instance = *Console::GetComponent<U3DViewer>("Main");
 					instance.DefinePerspectiveProjection(0.1f, 1000.0f, 15.0f, (float)instance.GetSize().Y * 2 / instance.GetSize().X);
 				})
@@ -133,10 +200,9 @@ public:
 	{
 
 	}
-	void run()
+	virtual int main() override
 	{
-		while (Console::IsOpen())
-		{
+		while (Console::IsOpen()) {
 			if (Console::Keyboard(VK_ESCAPE).bStrokeReleased)
 				Console::Close();
 
@@ -144,13 +210,10 @@ public:
 
 			Console::Display();
 		}
+		return 0;
 	}
 private:
 	U3DViewer::Object obj;
 };
 
-int main()
-{
-	Application app;
-	app.run();
-}
+TUIWIN32_STARTUP(Application)

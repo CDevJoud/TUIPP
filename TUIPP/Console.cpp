@@ -1,6 +1,11 @@
 #include "Console.hpp"
 #include "assert.h"
 
+Console::Console(HANDLE hConsole) :
+	Window("", Window::Type::Console, 0, 0)
+{
+}
+
 Console::Console(const std::string& title, uint16_t width, uint16_t height, uint16_t pixelWidth, uint16_t pixelHeight) :
 	Window(title, Window::Type::Console, width* pixelWidth, height* pixelHeight),
 	m_nPixelWidth(pixelWidth),
@@ -34,6 +39,7 @@ Console::Console(const std::string& title, uint16_t width, uint16_t height, uint
 		wcscpy_s(cfi.FaceName, L"Consolas");
 		SetCurrentConsoleFontEx(this->GetOutputHandle(), FALSE, &cfi);
 
+		this->m_ViewRect.Left = 0;
 		this->m_ViewRect.Left = 0;
 		this->m_ViewRect.Top = 0;
 		this->m_ViewRect.Right = width - 1;
@@ -124,14 +130,32 @@ void Console::Display()
 		}
 		component->Render(this);
 	}
-	if (this->m_targetedComponent != 0xffffffff)
+	/*if (this->m_targetedComponent != 0xffffffff)
 	{
 
 		this->m_components[this->m_targetedComponent]->Update(this);
 		this->m_components[this->m_targetedComponent]->Render(this);
-	}
+	}*/
 	//this->SetPixel(this->GetMousePos().X, this->GetMousePos().Y, 0x2588, 0x11);
 	SMALL_RECT rect = this->GetViewRect();
 	WriteConsoleOutputW(this->GetOutputHandle(), re.buffer.data(), {short(this->re.viewRect.Right), short(this->re.viewRect.Bottom)}, {}, &rect);
+}
+
+Window& Console::GetWindow()
+{
+	// TODO: insert return statement here
+	return *this;
+}
+
+RenderTarget& Console::GetRenderTarget()
+{
+	// TODO: insert return statement here
+	return *this;
+}
+
+EventProcessor& Console::GetEventProcesor()
+{
+	// TODO: insert return statement here
+	return *this;
 }
 

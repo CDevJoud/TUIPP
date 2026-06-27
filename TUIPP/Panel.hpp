@@ -17,6 +17,19 @@
 class Panel : public virtual RenderTarget, public Component
 {
 public:
+	class FunctionDefinition {
+	public:
+		using OnInit = std::function<void(Panel&)>;
+		using OnRender = std::function<void(Panel&)>;
+		using OnResize = std::function<void(Panel&)>;
+	};
+	using FD = FunctionDefinition;
+	enum class TitleAlignment {
+		NONE = 0,
+		Left,
+		Center,
+		Right
+	};
 	Panel();
 	Panel(const std::string& title, uint16_t width, uint16_t height, FunctionContainer fc = {});
 	template <typename TemplateFunctionContainer>
@@ -47,7 +60,7 @@ public:
 		component->SetPosition(1, 1);
 		return component;
 	}
-	void Create(const std::string& title, uint16_t width, uint16_t height);
+	bool Create(const std::string& title, uint16_t width, uint16_t height);
 	bool InsertComponent(const std::shared_ptr<Component>& component);
 	template<typename CompType>
 	std::shared_ptr<CompType> GetComponent(const std::string& title)
@@ -71,6 +84,21 @@ public:
 
 	//Get Pos.xy and size.xy
 	SMALL_RECT GetRect() const;
+	Panel& SetResizability(bool);
+	bool IsResizable() const;
+
+	Panel& SetMovability(bool);
+	bool IsMovable() const;
+
+	bool IsHovering() const;
+
+	Panel& SetTitleAlignment(TitleAlignment alignment);
+	Panel& SetTitleAlignmentOffset(int16_t offset);
+
+	Panel& SetBorderColor(uint8_t color);
+
+	RenderTarget& GetRenderTarget();
+	Component& GetComponent();
 protected:
 	void SetUpFrame(RenderTarget* out, SMALL_RECT rect, uint8_t color);
 private:
@@ -79,10 +107,16 @@ private:
 	bool isResizingRight = false;
 	bool isResizingLeft = false;
 	bool isResizingBottom = false;
+	bool isResizable = true;
+	bool isMovable = true;
+	bool isHovering = false;
 	COORD m_mousePosition, m_testMousePos;
 	bool isDragging = false, resizeDragging = false;
 	COORD offset{}, m_resizeOffset;
+	int16_t titleAlignmentOffset;
+	TitleAlignment titleAlignment;
 	std::string m_title;
+	uint8_t nBorderColor;
 	//uint16_t m_nWidth, m_nHeight, m_nPositionX, m_nPositionY;
 };
 

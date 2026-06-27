@@ -11,6 +11,56 @@ SMALL_RECT Panel::GetRect() const
 	};
 }
 
+Panel& Panel::SetResizability(bool b) {
+	this->isResizable = b;
+	return *this;
+}
+
+bool Panel::IsResizable() const {
+	return this->isResizable;
+}
+
+Panel& Panel::SetMovability(bool b) {
+	this->isMovable = b;
+	return *this;
+}
+
+bool Panel::IsMovable() const {
+	return this->isMovable;
+}
+
+bool Panel::IsHovering() const {
+	return this->isHovering;
+}
+
+Panel& Panel::SetTitleAlignment(TitleAlignment alignment) {
+	this->titleAlignment = alignment;
+	return *this;
+
+}
+
+Panel& Panel::SetTitleAlignmentOffset(int16_t offset) {
+	this->titleAlignmentOffset = offset;
+	return *this;
+}
+
+Panel& Panel::SetBorderColor(uint8_t color) {
+	this->nBorderColor = color;
+	return *this;
+}
+
+RenderTarget& Panel::GetRenderTarget()
+{
+	// TODO: insert return statement here
+	return *this;
+}
+
+Component& Panel::GetComponent()
+{
+	// TODO: insert return statement here
+	return *this;
+}
+
 void Panel::SetUpFrame(RenderTarget* rt, SMALL_RECT rect, uint8_t color)
 {
 	SMALL_RECT;
@@ -40,14 +90,20 @@ void Panel::SetUpFrame(RenderTarget* rt, SMALL_RECT rect, uint8_t color)
 
 Panel::Panel() :
 	m_title(""),
-	Component(Component::Type::Panel, &this->re, "NONE!")
+	Component(Component::Type::Panel, &this->re, "NONE!"),
+	titleAlignment(TitleAlignment::Center),
+	titleAlignmentOffset(0),
+	nBorderColor(0x0f)
 {
 
 }
 
 Panel::Panel(const std::string& title, uint16_t width, uint16_t height, FunctionContainer fc) :
 	m_title(title),
-	Component(Component::Type::Panel, &this->re, title, fc)
+	Component(Component::Type::Panel, &this->re, title, fc),
+	titleAlignment(TitleAlignment::Center),
+	titleAlignmentOffset(0),
+	nBorderColor(0x0f)
 {
 	this->Create(title, width, height);
 }
@@ -55,62 +111,99 @@ Panel::Panel(const std::string& title, uint16_t width, uint16_t height, Function
 std::shared_ptr<Panel> Panel::CreateInstance(const std::string& title, uint16_t width, uint16_t height, FunctionContainer fc)
 {
 	auto component = std::make_shared<Panel>(title, width, height, fc);
+	if (component->re.buffer.empty()) {
+		return nullptr;
+	}
 	component->SetPosition(1, 1);
 	return component;
 }
 
-void Panel::Create(const std::string& title, uint16_t width, uint16_t height)
+bool Panel::Create(const std::string& title, uint16_t width, uint16_t height)
 {
-	this->m_nWidth = width;
-	this->m_nHeight = height;
-	this->m_title = title;
-	this->re.buffer.resize(width * height);
-	this->re.viewRect = { 0, 0, (short)width, (short)height };
+	if (!RenderTarget::CheckInBoundaries({(short)width, (short)height}, {0, 0, 512, 512})) {
+		return false;
+	}
+	else {
+		this->m_nWidth = width;
+		this->m_nHeight = height;
+		this->m_title = title;
+		this->re.buffer.resize(width * height);
+		this->re.viewRect = { 0, 0, (short)width, (short)height };
+		return true;
+	}
 }
 
 bool Panel::InsertComponent(const std::shared_ptr<Component>& component)
 {
 	auto cType = component->GetType();
-	switch (cType)
-	{
+	
+	switch (cType) {
 	case Component::Type::Panel:
 		m_components.push_back(component);
 		break;
 	case Component::Type::Button:
 	{
 		auto lastComponent = (this->m_components.empty()) ? std::shared_ptr<Component>() : *(std::prev(this->m_components.end()));
-		if(lastComponent == nullptr)
-		{
+		if (lastComponent == nullptr) {
 			component->SetPosition(0, 0);
 			this->m_components.push_back(component);
 			component->OnInit();
+			return true;
 		}
-		else
-		{
-			component->SetPosition(0, lastComponent->GetPosition().Y + 1);
+		else {
+			if ((lastComponent->GetType() & Component::Type::Panel) != Component::Type::NONE) {
+				component->SetPosition(0, lastComponent->GetPosition().Y + 2);
+			}
+			else {
+				component->SetPosition(0, lastComponent->GetPosition().Y + 1);
+
+			}
 			this->m_components.push_back(component);
 			component->OnInit();
+			return true;
 		}
 	}
-		break;
 	default:
 		break;
 	}
+
+
+	//Mixed Types
+	if ((cType & (Component::Type::Panel | Component::Type::InputBox)) != Component::Type::NONE) {
+		auto lastComponent = (this->m_components.empty()) ? std::shared_ptr<Component>() : *(std::prev(this->m_components.end()));
+		if (lastComponent == nullptr) {
+			component->SetPosition(1, 1);
+			this->m_components.push_back(component);
+			component->OnInit();
+			return true;
+		}
+		else {
+			component->SetPosition(1, lastComponent->GetPosition().Y + 1);
+			this->m_components.push_back(component);
+			component->OnInit();
+			return true;
+		}
+	}
+
 	
-	return true;
+	return false;
 }
 
 
 void Panel::Update(EventProcessor* ep)
 {
-	
-
 	if (this->m_fc.Find("OnUpdate"))
 		this->m_fc.CallFunction<void>("OnUpdate");
 
-	this->m_testMousePos = ep->GetMousePos();
-	bool bIsHovered = false;
-	
+	//Update Components
+	for (int i = 0; i < this->m_components.size(); i++) {
+		auto& component = this->m_components[i];
+		EventProcessor epInstance = *ep;
+		epInstance.m_mousePos.X = ep->GetMousePos().X - this->GetPosition().X;
+		epInstance.m_mousePos.Y = ep->GetMousePos().Y - this->GetPosition().Y;
+		component->Update(&epInstance);
+	}
+
 	// Check if the mouse is hovering over the panel
 	if (this->CheckInBoundaries(ep->GetMousePos(), {
 			this->GetPosition().X,
@@ -119,14 +212,6 @@ void Panel::Update(EventProcessor* ep)
 			short(this->GetPosition().Y + this->GetSize().Y)
 		}))
 	{
-		for (int i = 0; i < this->m_components.size(); i++)
-		{
-			auto& component = this->m_components[i];
-			EventProcessor epInstance = *ep;
-			epInstance.m_mousePos.X = ep->GetMousePos().X - this->GetPosition().X;
-			epInstance.m_mousePos.Y = ep->GetMousePos().Y - this->GetPosition().Y;
-			component->Update(&epInstance);
-		}
 		COORD mPos = {
 			short(ep->GetMousePos().X - this->GetPosition().X),
 			short(ep->GetMousePos().Y - this->GetPosition().Y)
@@ -137,97 +222,100 @@ void Panel::Update(EventProcessor* ep)
 		{
 			this->m_fc.CallFunction<void, const COORD&>("OnMouseHover", mPos);
 		}
-		bIsHovered = true;
+		this->isHovering = true;
+	}
+	else {
+		this->isHovering = false;
 	}
 
 	// Handle mouse press events
 	if (ep->Mouse(EventProcessor::MouseType::Left).bStrokePressed)
 	{
-		// Dragging logic
-		if (this->CheckInBoundaries(ep->GetMousePos(), {
-			this->GetPosition().X,
-			short(this->GetPosition().Y - 1),
-			short(this->GetPosition().X + this->GetSize().X),
-			short(this->GetPosition().Y - 1)
-			}))
+		if(this->isMovable)
 		{
-			isDragging = true;
-			offset = {
-				short(ep->GetMousePos().X - this->GetPosition().X),
-				short(ep->GetMousePos().Y - this->GetPosition().Y)
-			};
+			// Dragging logic
+			if (this->CheckInBoundaries(ep->GetMousePos(), {
+				this->GetPosition().X,
+				short(this->GetPosition().Y - 1),
+				short(this->GetPosition().X + this->GetSize().X),
+				short(this->GetPosition().Y - 1)
+				})) {
+				isDragging = true;
+				offset = {
+					short(ep->GetMousePos().X - this->GetPosition().X),
+					short(ep->GetMousePos().Y - this->GetPosition().Y)
+				};
+			}
 		}
 
 		// Targeting logic
-		this->m_targeted = bIsHovered;
+		this->m_targeted = this->IsHovering();
 
 		// Resizing logic
 		const short resizeMargin = 0; // Buffer zone for resizing interaction
 
-		// Right edge resizing
-		if (this->CheckInBoundaries(ep->GetMousePos(), {
-			short(this->GetPosition().X + this->GetSize().X - resizeMargin),
-			this->GetPosition().Y,
-			short(this->GetPosition().X + this->GetSize().X),
-			short(this->GetPosition().Y + this->GetSize().Y - 1)
-			}))
+		if(isResizable)
 		{
-			resizeDragging = true;
-			this->isResizingRight = true;
-			this->m_resizeOffset = {
-				short(ep->GetMousePos().X - this->GetPosition().X),
-				this->GetSize().Y
-			};
-		}
-		// Bottom edge resizing
-		else if (this->CheckInBoundaries(ep->GetMousePos(), {
-			short(this->GetPosition().X + 1),
-			short(this->GetPosition().Y + this->GetSize().Y - resizeMargin),
-			short(this->GetPosition().X + this->GetSize().X - 1),
-			short(this->GetPosition().Y + this->GetSize().Y)
-			}))
-		{
-			resizeDragging = true;
-			this->isResizingBottom = true;
-			this->m_resizeOffset = {
-				this->GetSize().X,
-				short(ep->GetMousePos().Y - this->GetPosition().Y)
-			};
-		}
-		// Left edge resizing
-		else if (this->CheckInBoundaries(ep->GetMousePos(), {
-			short(this->GetPosition().X - 1),
-			short(this->GetPosition().Y),
-			short(this->GetPosition().X + resizeMargin - 1),
-			short(this->GetPosition().Y + this->GetSize().Y - 1)
-			}))
-		{
-			this->isResizingLeft = true;
-			resizeDragging = true;
-			this->m_resizeOffset = {
-				short(ep->GetMousePos().X - this->GetPosition().X + 1),
-				this->GetSize().Y
-			};
-		}
-		else if (this->GetPosition().X + this->GetSize().X == ep->GetMousePos().X &&
-			this->GetPosition().Y + this->GetSize().Y == ep->GetMousePos().Y)
-		{
-			this->isResizingRight = this->isResizingBottom = true;
-			this->resizeDragging = true;
-			this->m_resizeOffset = {
-				short(ep->GetMousePos().X - this->GetPosition().X),
-				short(ep->GetMousePos().Y - this->GetPosition().Y)
-			};
-		}
-		else if (this->GetPosition().X - 1 == ep->GetMousePos().X &&
-			this->GetPosition().Y + this->GetSize().Y == ep->GetMousePos().Y)
-		{
-			this->isResizingLeft = this->isResizingBottom = true;
-			this->resizeDragging = true;
-			this->m_resizeOffset = {
-				short(ep->GetMousePos().X - this->GetPosition().X),
-				short(ep->GetMousePos().Y - this->GetPosition().Y)
-			};
+			// Right edge resizing
+			if (this->CheckInBoundaries(ep->GetMousePos(), {
+				short(this->GetPosition().X + this->GetSize().X - resizeMargin),
+				this->GetPosition().Y,
+				short(this->GetPosition().X + this->GetSize().X),
+				short(this->GetPosition().Y + this->GetSize().Y - 1)
+				})) {
+				resizeDragging = true;
+				this->isResizingRight = true;
+				this->m_resizeOffset = {
+					short(ep->GetMousePos().X - this->GetPosition().X),
+					this->GetSize().Y
+				};
+			}
+			// Bottom edge resizing
+			else if (this->CheckInBoundaries(ep->GetMousePos(), {
+				short(this->GetPosition().X + 1),
+				short(this->GetPosition().Y + this->GetSize().Y - resizeMargin),
+				short(this->GetPosition().X + this->GetSize().X - 1),
+				short(this->GetPosition().Y + this->GetSize().Y)
+				})) {
+				resizeDragging = true;
+				this->isResizingBottom = true;
+				this->m_resizeOffset = {
+					this->GetSize().X,
+					short(ep->GetMousePos().Y - this->GetPosition().Y)
+				};
+			}
+			// Left edge resizing
+			else if (this->CheckInBoundaries(ep->GetMousePos(), {
+				short(this->GetPosition().X - 1),
+				short(this->GetPosition().Y),
+				short(this->GetPosition().X + resizeMargin - 1),
+				short(this->GetPosition().Y + this->GetSize().Y - 1)
+				})) {
+				this->isResizingLeft = true;
+				resizeDragging = true;
+				this->m_resizeOffset = {
+					short(ep->GetMousePos().X - this->GetPosition().X + 1),
+					this->GetSize().Y
+				};
+			}
+			else if (this->GetPosition().X + this->GetSize().X == ep->GetMousePos().X &&
+				this->GetPosition().Y + this->GetSize().Y == ep->GetMousePos().Y) {
+				this->isResizingRight = this->isResizingBottom = true;
+				this->resizeDragging = true;
+				this->m_resizeOffset = {
+					short(ep->GetMousePos().X - this->GetPosition().X),
+					short(ep->GetMousePos().Y - this->GetPosition().Y)
+				};
+			}
+			else if (this->GetPosition().X - 1 == ep->GetMousePos().X &&
+				this->GetPosition().Y + this->GetSize().Y == ep->GetMousePos().Y) {
+				this->isResizingLeft = this->isResizingBottom = true;
+				this->resizeDragging = true;
+				this->m_resizeOffset = {
+					short(ep->GetMousePos().X - this->GetPosition().X),
+					short(ep->GetMousePos().Y - this->GetPosition().Y)
+				};
+			}
 		}
 	}
 
@@ -244,7 +332,17 @@ void Panel::Update(EventProcessor* ep)
 		if (resizeDragging)
 		{
 			// Minimum size constraints
-			const short minWidth = this->GetTitle().length() * 4; // Minimum width
+			short minWidth = 0;
+			if (this->titleAlignment == TitleAlignment::Center) {
+				minWidth = this->GetTitle().length() * 4; // Minimum width
+			}
+			else if (this->titleAlignment == TitleAlignment::Left) {
+				minWidth = this->GetTitle().length() * 2; // Minimum width
+			}
+			else {
+				minWidth = this->GetTitle().length() * 2; // Minimum width
+			}
+			
 			const short minHeight = 1;                          // Minimum height for the panel
 
 			short newX = this->GetPosition().X;  // Default to current X position
@@ -291,7 +389,7 @@ void Panel::Update(EventProcessor* ep)
 			this->SetPosition(newX, this->GetPosition().Y);
 			this->SetSize(newWidth, newHeight, true);
 			if (this->GetFunctionContainer().Find("OnResize"))
-				this->GetFunctionContainer().CallFunction<void>("OnResize");
+				this->GetFunctionContainer().CallFunction<void, Panel&>("OnResize", *this);
 		}
 	}
 
@@ -308,25 +406,42 @@ void Panel::Render(RenderTarget* out)
 {
 	if (this->m_fc.Find("OnLastRender"))
 		this->m_fc.CallFunction<void>("OnLastRender");
-
 	for (int i = 0; i < this->m_components.size(); i++)
 	{
 		auto& component = this->m_components[i];
 
 		component->Render(this);
 	}
-	SetUpFrame(out, this->GetRect(), 0x0f);
-	out->RenderText(this->GetPosition().X + (this->GetSize().X / 2u) - (this->GetTitle().length() / 2),
-		this->GetPosition().Y - 1, this->GetTitle(), 0x0f);
+	//int a = this->GetTitle().length() * (this->GetTitle().length() / this->GetSize().X);
+	SetUpFrame(out, this->GetRect(), this->nBorderColor);
+	switch (this->titleAlignment) {
+	default:
+		break;
+	case TitleAlignment::Left:
+		out->RenderText(this->GetPosition().X + this->titleAlignmentOffset + (this->GetTitle().length() * 0.25),
+			this->GetPosition().Y - 1, this->GetTitle(), 0x0f);
+		break;
+
+	case TitleAlignment::Center:
+		out->RenderText(this->GetPosition().X + (this->GetSize().X / 2u) - (this->GetTitle().length() / 2),
+			this->GetPosition().Y - 1, this->GetTitle(), 0x0f);
+		break;
+
+	case TitleAlignment::Right:
+		out->RenderText(this->GetPosition().X + this->GetSize().X + this->titleAlignmentOffset - (this->GetTitle().length() * 1.25),
+			this->GetPosition().Y - 1, this->GetTitle(), 0x0f);
+		break;
+	}
+	
 	RenderTarget::FlushTo(out, this->GetRect());
 	if (this->m_fc.Find("OnRender"))
-		this->m_fc.CallFunction<void>("OnRender");
+		this->m_fc.CallFunction<void, Panel&>("OnRender", *this);
 }
 
 void Panel::OnInit()
 {
 	if (this->GetFunctionContainer().Find("OnInit"))
-		this->GetFunctionContainer().CallFunction<void>("OnInit");
+		this->GetFunctionContainer().CallFunction<void, Panel&>("OnInit", *this);
 }
 
 std::string Panel::GetTitle() const

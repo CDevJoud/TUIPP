@@ -1,60 +1,66 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="RenderTarget3D" Collapsed="true">
-    <Position X="9.75" Y="4.75" Width="1.5" />
-    <NestedTypes>
-      <Class Name="RenderTarget3D::Mesh" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>RenderTarget3D.hpp</NewMemberFileName>
-        </TypeIdentifier>
-      </Class>
-      <Class Name="RenderTarget3D::Object" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>RenderTarget3D.hpp</NewMemberFileName>
-        </TypeIdentifier>
-      </Class>
-      <Class Name="RenderTarget3D::Triangle" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>RenderTarget3D.hpp</NewMemberFileName>
-        </TypeIdentifier>
-      </Class>
-      <Typedef Name="RenderTarget3D::Triangles" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>RenderTarget3D.hpp</NewMemberFileName>
-        </TypeIdentifier>
-      </Typedef>
-    </NestedTypes>
-    <TypeIdentifier>
-      <HashCode>QAAAAAAAAAAQAAAAAAAAAAAACAAAAAAgABAAAAAAAAE=</HashCode>
-      <FileName>RenderTarget3D.hpp</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="Panel" Collapsed="true">
-    <Position X="12.25" Y="3" Width="1.5" />
+    <Position X="13.25" Y="6.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AASAJAAAQAAgAIAAgAQgAAAAAACAAESBABQSAAAQAAA=</HashCode>
+      <HashCode>AASAJAAAQAAgAIAAgAQgBAAAAACAAESBABQSAAAQAAA=</HashCode>
       <FileName>Panel.hpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="RenderTarget" Collapsed="true">
-    <Position X="8.25" Y="6.5" Width="1.5" />
+    <Position X="11.25" Y="9.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AiAAABAEAAAAAAAQAAIAABCAAAAACGAQCAAAEAAICAA=</HashCode>
       <FileName>RenderTarget.hpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Component" Collapsed="true">
-    <Position X="12" Y="6.5" Width="1.5" />
+    <Position X="15" Y="9.5" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Component::Type" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Component.hpp</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
     <TypeIdentifier>
       <HashCode>AAQAIAACACAgAACAAAAMggAAAAAAAg8CQBBAAAAIEAA=</HashCode>
       <FileName>Component.hpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="U3DViewer" Collapsed="true">
-    <Position X="9.75" Y="3" Width="1.5" />
+    <Position X="13.25" Y="5.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAABAAAAAAAIAAAAgAAAAAAAAAAAAAAADAAAAAAAAA=</HashCode>
+      <HashCode>QgAABAAAQAAQIAAAAgAAAAAACAIABAAgADAAAAAAAAE=</HashCode>
       <FileName>U3DViewer.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Console" Collapsed="true">
+    <Position X="11.25" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAKAAiCAAAAAAAAAAAAEBQgAAACIAAQEQAAAAAAIAgE=</HashCode>
+      <FileName>Console.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Window" Collapsed="true">
+    <Position X="8.75" Y="6.25" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Window::Type" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Window.hpp</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>IAAAIAAEQCACAACAAAAIAAAgAQAAAgAABAAACACAAAA=</HashCode>
+      <FileName>Window.hpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Application" Collapsed="true">
+    <Position X="8.25" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAIAAAAAAAAAAAAAACAAAAAAAAAAAAAAQ=</HashCode>
+      <FileName>TUI.cpp</FileName>
     </TypeIdentifier>
   </Class>
   <Font Name="Segoe UI" Size="9" />

@@ -16,6 +16,8 @@ struct RenderElement
 class RenderTarget
 {
 public:
+	RenderTarget();
+	RenderTarget(RenderElement* re);
 	void FlushTo(RenderTarget* out, SMALL_RECT rect);
 	~RenderTarget();
 
@@ -32,6 +34,7 @@ public:
 	void CalculateClipOn(int16_t& x, int16_t& y);
 	bool CheckInBoundaries(COORD pos, SMALL_RECT rect);
 	SMALL_RECT GetViewRect() const;
+
 protected:
 	RenderElement re;
 	friend class Console;

@@ -67,3 +67,7 @@ RenderElement* Component::GetRenderElement() const
 {
 	return this->m_re;
 }
+
+void Component::SetComponentType(Type type) {
+	this->m_type = type;
+}

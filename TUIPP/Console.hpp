@@ -3,11 +3,17 @@
 #include "EventProcessor.hpp"
 #include "Panel.hpp"
 #include "Button.hpp"
+#include "InputBox.hpp"
 #include <memory>
+
+/// <summary>
+/// New feature is adding TEMPLATE!
+/// </summary>
 
 class Console : public Window, public RenderTarget, public EventProcessor
 {
 public:
+	Console(HANDLE hConsole);
 	Console(const std::string& title, uint16_t width, uint16_t height, uint16_t pixelWidth, uint16_t pixelHeight);
 	~Console();
 	HANDLE GetOutputHandle() const;
@@ -34,6 +40,10 @@ public:
 	void SetConsoleSize(uint16_t width, uint16_t height, bool updateBuffer = false);
 
 	void Display();
+
+	Window& GetWindow();
+	RenderTarget& GetRenderTarget();
+	EventProcessor& GetEventProcesor();
 private:
 	uint32_t m_targetedComponent;
 	std::vector<std::shared_ptr<Component>> m_components;

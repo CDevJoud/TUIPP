@@ -1,8 +1,7 @@
 #include "U3DViewer.hpp"
 
-U3DViewer::U3DViewer(const std::string& title, uint16_t width, uint16_t height, FunctionContainer fc) : 
-	Panel(title, width, height, fc)
-{
+U3DViewer::U3DViewer(const std::string& title, uint16_t width, uint16_t height, FunctionContainer fc) :
+	Panel(title, width, height, fc) {
 
 }
 

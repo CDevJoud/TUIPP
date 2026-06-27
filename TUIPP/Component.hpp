@@ -8,9 +8,14 @@ class Component
 public:
 	enum class Type
 	{
-		Panel = 0,
-		Button
+		Button	 = 0b0000,
+		Panel	 = 0b0001,
+		InputBox = 0b0010,
+
+
+		NONE = 0xFFFFFFFF
 	};
+	
 	//Function container will be added!
 	Component(Type cType, RenderElement* re, const std::string& ID, FunctionContainer fc = {});
 
@@ -33,6 +38,8 @@ protected:
 	FunctionContainer m_fc;
 	bool m_targeted;
 	RenderElement* GetRenderElement() const;
+	void SetComponentType(Type type);
+	
 	uint16_t m_nWidth, m_nHeight, m_nPositionX, m_nPositionY;
 private:
 	std::string m_id;
@@ -42,3 +49,10 @@ private:
 	friend class Console;
 };
 
+inline Component::Type operator|(Component::Type a, Component::Type b) {
+	return static_cast<Component::Type>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+}
+
+inline Component::Type operator&(Component::Type a, Component::Type b) {
+	return static_cast<Component::Type>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+}

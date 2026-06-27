@@ -11,14 +11,17 @@ Window::Window(const std::string& title, const Type& type, const uint16_t width,
 	m_type(type),
 	m_hwnd(nullptr)
 {
-	if (this->m_type == Type::Console)
-	{
-		if (this->InitConsoleWindow())
-		{
+	if (this->m_type == Type::Console) {
+		if (title.empty() && width == 0 && height == 0) {
+			if (this->InitConsoleWindow()) {
+				this->m_bIsOpen = (bool)this->m_hwnd;
+			}
+		}
+		else if (this->InitConsoleWindow()) {
 			this->m_bIsOpen = (bool)this->m_hwnd;
 			this->SetSize(width, height);
 			RECT wndRect, deskRect;
-			
+
 			GetWindowRect(this->m_hwnd, &wndRect);
 			GetWindowRect(GetDesktopWindow(), &deskRect);
 
@@ -37,7 +40,7 @@ Window::Window(const std::string& title, const Type& type, const uint16_t width,
 			this->SetPosition(x, y);
 
 			this->SetTitle(title);
-			
+
 			SetConsoleCtrlHandler(ConsoleHandler, TRUE);
 		}
 	}

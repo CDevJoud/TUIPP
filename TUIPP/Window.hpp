@@ -2,6 +2,16 @@
 #include <Windows.h>
 #include <string>
 
+#define as =
+#define TUI_STARTUP(_App) int main() {_App app; return app.main();}
+#ifdef UNICODE
+#define TUIWIN32_STARTUP(_App) INT APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPTSTR, _In_ INT) {_App app; INT nExitCode = app.main(); ExitProcess(nExitCode);}
+#endif
+class TUIStartup {
+public:
+	virtual int main() = 0;
+};
+
 class Window
 {
 public:

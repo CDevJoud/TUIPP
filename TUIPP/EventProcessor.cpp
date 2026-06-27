@@ -96,7 +96,7 @@ VOID EventProcessor::ProcessEvents()
 }
 void EventProcessor::InitEventProcessor(HANDLE hConsoleInput)
 {
-	this->m_handleConsoleInput = hConsoleInput;
+	m_handleConsoleInput = hConsoleInput;
 }
 EventProcessor::KeyStrokesCondition EventProcessor::Keyboard(INT ID)
 {
@@ -175,5 +175,7 @@ WCHAR EventProcessor::GetText()
 	if (Keyboard(VK_SPACE).bStrokePressed) return VK_SPACE;
 	if (Keyboard(VK_BACK).bStrokePressed) return VK_BACK;
 
+	//Update Inputs
+	this->ProcessEvents();
 	return NULL;
 }

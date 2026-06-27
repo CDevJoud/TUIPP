@@ -1,5 +1,15 @@
 #include "RenderTarget.hpp"
 
+RenderTarget::RenderTarget() : re(RenderElement())
+{
+
+}
+
+RenderTarget::RenderTarget(RenderElement* re) : re(re)
+{
+
+}
+
 void RenderTarget::FlushTo(RenderTarget* out, SMALL_RECT rect)
 {
 	COORD p1 = { rect.Left, rect.Top };
